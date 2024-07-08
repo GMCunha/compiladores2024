@@ -2,7 +2,6 @@
 
 class Lexer:
     def __init__(self, input_path):
-        self.__input_path = input_path
         self.__input_file = open(input_path, 'r')
         self.__input = self.remove_whitespace(self.__input_file.read())
         self.__input_file.close()
@@ -12,7 +11,12 @@ class Lexer:
         self.non_terminals = []
         self.permutations = {}
         self.starting_symbol = None
+        self.word = ''
         self.process_grammar()
+
+
+    def get_information(self):
+        return self.terminals, self.non_terminals, self.permutations, self.starting_symbol, self.word
 
 
     def next_char(self):
@@ -43,6 +47,9 @@ class Lexer:
         self.assert_char(',')
         self.process_starting_symbol()
         self.assert_char(')')
+        self.assert_char('\n')
+        if self.__char is not None:
+            self.process_word()
 
     
     def process_non_terminals(self):
@@ -146,6 +153,15 @@ class Lexer:
             raise Exception('Starting symbol is not a non-terminal symbol')
         self.next_char()
         print(self.starting_symbol)
+
+
+    def process_word(self):
+        self.word = self.__char
+        self.next_char()
+        while self.__char is not None:
+            self.word += self.__char
+            self.next_char()
+        print(self.word)
 
 
     @staticmethod
