@@ -8,7 +8,7 @@ class Lexer:
         self.__input_file.close()
         self.__pos = 0
         self.__char = self.__input[self.__pos]
-        self.terminals = ['e']
+        self.terminals = ['&']
         self.non_terminals = []
         self.permutations = {}
         self.starting_symbol = None
@@ -67,10 +67,10 @@ class Lexer:
         while True:
             if self.__char in self.non_terminals:
                 raise Exception('Terminal symbol is also a non-terminal symbol')
-            if self.__char in self.terminals and self.__char != 'e':
+            if self.__char in self.terminals and self.__char != '&':
                 raise Exception('Terminal symbol is repeated')
-            if self.__char == 'e':
-                self.terminals.remove('e')
+            if self.__char == '&':
+                self.terminals.remove('&')
             
             self.terminals.append(self.__char)
             self.next_char()
@@ -113,6 +113,8 @@ class Lexer:
         if non_terminal not in self.permutations:
             self.permutations[non_terminal] = []
         while self.__char != '\n' and self.__char != '}':
+            if self.__char not in self.terminals and self.__char not in self.non_terminals:
+                raise Exception('Symbol not found')
             if self.__char in self.terminals:
                 perm = []
                 while True:
