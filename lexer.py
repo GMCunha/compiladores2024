@@ -6,33 +6,37 @@ class Lexer:
         self.__input = self.remove_whitespace(self.__input_file.read())
         self.__input_file.close()
         self.__pos = 0
+        self.__line = 1
+        self.__column = 1
         self.__char = self.__input[self.__pos]
         self.terminals = ['&']
         self.non_terminals = []
         self.permutations = {}
         self.starting_symbol = None
         self.word = ''
+        self.symbol_positions = {}  # New: to store positions
         self.process_grammar()
-
 
     def get_information(self):
         return self.terminals, self.non_terminals, self.permutations, self.starting_symbol, self.word
 
-
     def next_char(self):
+        if self.__char == '\n':
+            self.__line += 1
+            self.__column = 1
+        else:
+            self.__column += 1
         self.__pos += 1
         if self.__pos < len(self.__input):
             self.__char = self.__input[self.__pos]
         else:
             self.__char = None
 
-
     def assert_char(self, expected_char):
         if self.__char == expected_char:
             self.next_char()
         else:
             raise Exception(f'Expected {expected_char}, got {self.__char}')
-
 
     def process_grammar(self):
         if self.__char == 'G':
@@ -51,7 +55,6 @@ class Lexer:
         if self.__char is not None:
             self.process_word()
 
-    
     def process_non_terminals(self):
         self.assert_char('{')
         while True:
@@ -61,13 +64,12 @@ class Lexer:
                 raise Exception('Non-terminal symbol is repeated')
             
             self.non_terminals.append(self.__char)
+            self.symbol_positions[self.__char] = (self.__line, self.__column)  # Store position
             self.next_char()
             if self.__char == '}':
                 self.next_char()
                 break
             self.assert_char(',')
-        print(self.non_terminals)
-
 
     def process_terminals(self):
         self.assert_char('{')
@@ -80,13 +82,12 @@ class Lexer:
                 self.terminals.remove('&')
             
             self.terminals.append(self.__char)
+            self.symbol_positions[self.__char] = (self.__line, self.__column)  # Store position
             self.next_char()
             if self.__char == '}':
                 self.next_char()
                 break
             self.assert_char(',')
-        print(self.terminals)
-        
 
     def process_permutations(self):
         self.assert_char('{')
@@ -105,7 +106,6 @@ class Lexer:
             print(key, " -> ", end='')
             print(" | ".join(["".join(x) for x in value]))
 
-
     def process_permutation(self):
         non_terminal = self.__char
         if non_terminal not in self.non_terminals:
@@ -114,7 +114,6 @@ class Lexer:
         self.assert_char('-')
         self.assert_char('>')
         self.process_permutation_body(non_terminal)
-
 
     def process_permutation_body(self, non_terminal):
         if non_terminal not in self.permutations:
@@ -146,14 +145,12 @@ class Lexer:
                     self.assert_char('|')
                 self.permutations[non_terminal].append(perm)
 
-
     def process_starting_symbol(self):
         self.starting_symbol = self.__char
         if self.starting_symbol not in self.non_terminals:
             raise Exception('Starting symbol is not a non-terminal symbol')
+        self.symbol_positions[self.__char] = (self.__line, self.__column)  # Store position
         self.next_char()
-        print(self.starting_symbol)
-
 
     def process_word(self):
         self.word = self.__char
@@ -161,14 +158,7 @@ class Lexer:
         while self.__char is not None:
             self.word += self.__char
             self.next_char()
-        print(self.word)
-
 
     @staticmethod
     def remove_whitespace(input):
         return input.replace(' ', '').replace('\t', '')
-    
-
-if __name__ == '__main__':
-    lexer = Lexer('input.txt')
-
