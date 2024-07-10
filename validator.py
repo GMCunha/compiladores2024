@@ -15,7 +15,7 @@ class Validator:       # classe do validador da gramática
         self.word = ''
         self.position = 0
 
-    def assert_word(self, word) -> tuple[bool, int]:
+    def assert_word(self, word) -> tuple[bool, int]:    # verifica se a palavra contém apenas caracteres válidos
         for i, char in enumerate(word):
             if char not in self.terminals:
                 return False, i
