@@ -15,6 +15,12 @@ class Validator:
         self.word = ''
         self.position = 0
 
+    def assert_word(self, word) -> tuple[bool, int]:
+        for i, char in enumerate(word):
+            if char not in self.terminals:
+                return False, i
+        return True, -1
+
     def assert_char(self, expected_char) -> bool:
         if self.position < len(self.word) and self.word[self.position] == expected_char:
             self.position += 1
@@ -26,24 +32,31 @@ class Validator:
         self.position = 0
         root = TreeNode(self.starting_symbol)
         result, error, tree, pos = self._validate_symbol(self.starting_symbol, root)
+        valid_word, error_position = self.assert_word(word)
+        if not valid_word:
+            return False, f"Caractere {word[error_position]} na posição {error_position} não foi encontrado na lista de terminais", None
         if result and self.position == len(word):
             return True, None, tree
-        else:
-            return False, error or f"Erro inesperado na posição {pos}", None
+        return False, error or f"Erro inesperado na posição {pos}", None
 
     def _validate_symbol(self, symbol, node):
-        if self.position >= len(self.word):
+        if self.position == len(self.word):
             if '&' in [p[0] for p in self.permutations.get(symbol, [])]:
+                new_node = TreeNode('&')
+                if node.left is None:
+                    node.left = new_node
+                else:
+                    node.right = new_node
+                node = new_node
                 return True, None, node, self.position
-            else:
-                return False, "Palavra incompleta", node, self.position
+            return False, "Palavra incompleta", node, self.position
+        error_position = self.position
+        error_symbol = symbol
+        best_error_message = None
         for production in self.permutations.get(symbol, []):
             initial_position = self.position
             matched = True
-            error_message = None
-            error_position = self.position
             current_node = node
-
             for char in production:
                 if char in self.non_terminals:
                     new_node = TreeNode(char)
@@ -54,8 +67,12 @@ class Validator:
                     result, error_message, _, pos = self._validate_symbol(char, new_node)
                     if not result:
                         matched = False
-                        error_position = pos
+                        if pos >= error_position:
+                            error_position = pos
+                            error_symbol = char
+                            best_error_message = error_message
                         break
+                    current_node = new_node
                 else:
                     if self.assert_char(char):
                         new_node = TreeNode(char)
@@ -66,17 +83,16 @@ class Validator:
                         current_node = new_node
                     else:
                         matched = False
-                        error_message = f"Erro ao validar símbolo {symbol} na posição {self.position}"
-                        error_position = self.position
+                        if self.position > error_position:
+                            error_position = self.position
+                            error_symbol = char
                         break
-
             if matched:
                 return True, None, node, self.position
-            else:
-                self.position = initial_position
+            self.position = initial_position
 
-        return False, error_message or f"Erro ao validar símbolo {symbol} na posição {self.position}", node, error_position
-
+        return False, best_error_message or f"Erro ao validar símbolo {error_symbol} na posição {error_position}", node, error_position
+    
 def print_tree(node, level=0):
     if node is not None:
         print(' ' * 4 * level + '->', node.symbol)
