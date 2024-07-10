@@ -1,7 +1,5 @@
-# Trabalho da Disciplina de compiladores
-
 class Lexer:
-    def __init__(self, input_path):
+    def __init__(self, input_path): # Inicializa o Lexer com o arquivo de entrada
         self.__input_file = open(input_path, 'r')
         self.__input = self.remove_whitespace(self.__input_file.read())
         self.__input_file.close()
@@ -14,13 +12,13 @@ class Lexer:
         self.permutations = {}
         self.starting_symbol = None
         self.word = ''
-        self.symbol_positions = {}  # New: to store positions
+        self.symbol_positions = {}
         self.process_grammar()
 
-    def get_information(self):
+    def get_information(self):  # Retorna informações da gramática analisada.
         return self.terminals, self.non_terminals, self.permutations, self.starting_symbol, self.word
 
-    def next_char(self):
+    def next_char(self):  # Avança para o próximo caractere no conteúdo do arquivo de entrada.
         if self.__char == '\n':
             self.__line += 1
             self.__column = 1
@@ -32,13 +30,13 @@ class Lexer:
         else:
             self.__char = None
 
-    def assert_char(self, expected_char):
+    def assert_char(self, expected_char): #Verifica se o caractere atual é igual ao caractere esperado e vai para o próximo caractere, se não for igual lança uma exceção.
         if self.__char == expected_char:
             self.next_char()
         else:
             raise Exception(f'Expected {expected_char}, got {self.__char}')
 
-    def process_grammar(self):
+    def process_grammar(self):  # Processa a gramática do arquivo de entrada.
         if self.__char == 'G':
             self.next_char()
             self.assert_char('=')
@@ -55,7 +53,7 @@ class Lexer:
         if self.__char is not None:
             self.process_word()
 
-    def process_non_terminals(self):
+    def process_non_terminals(self):        # Processa e armazena os símbolos não-terminais da gramática.
         self.assert_char('{')
         while True:
             if self.__char in self.terminals:
@@ -64,14 +62,14 @@ class Lexer:
                 raise Exception('Non-terminal symbol is repeated')
             
             self.non_terminals.append(self.__char)
-            self.symbol_positions[self.__char] = (self.__line, self.__column)  # Store position
+            self.symbol_positions[self.__char] = (self.__line, self.__column)
             self.next_char()
             if self.__char == '}':
                 self.next_char()
                 break
             self.assert_char(',')
 
-    def process_terminals(self):
+    def process_terminals(self):       # Processa e armazena os símbolos terminais da gramática.
         self.assert_char('{')
         while True:
             if self.__char in self.non_terminals:
@@ -82,14 +80,14 @@ class Lexer:
                 self.terminals.remove('&')
             
             self.terminals.append(self.__char)
-            self.symbol_positions[self.__char] = (self.__line, self.__column)  # Store position
+            self.symbol_positions[self.__char] = (self.__line, self.__column)
             self.next_char()
             if self.__char == '}':
                 self.next_char()
                 break
             self.assert_char(',')
 
-    def process_permutations(self):
+    def process_permutations(self): # Processa e armazena as permutações da gramática.
         self.assert_char('{')
         if self.__char == '\n':
             self.assert_char('\n')
@@ -106,7 +104,7 @@ class Lexer:
             print(key, " -> ", end='')
             print(" | ".join(["".join(x) for x in value]))
 
-    def process_permutation(self):
+    def process_permutation(self):          # Processa uma permutação individual da gramática.
         non_terminal = self.__char
         if non_terminal not in self.non_terminals:
             raise Exception('Non-terminal symbol not found')
@@ -115,7 +113,7 @@ class Lexer:
         self.assert_char('>')
         self.process_permutation_body(non_terminal)
 
-    def process_permutation_body(self, non_terminal):
+    def process_permutation_body(self, non_terminal):       # Processa corpo da permutação e armazena as produções num dicionário.
         if non_terminal not in self.permutations:
             self.permutations[non_terminal] = []
         while self.__char != '\n' and self.__char != '}':
@@ -145,14 +143,14 @@ class Lexer:
                     self.assert_char('|')
                 self.permutations[non_terminal].append(perm)
 
-    def process_starting_symbol(self):
+    def process_starting_symbol(self): # Processa e armazena símbolo inicial da gramática, exception: símbolo não-terminal.
         self.starting_symbol = self.__char
         if self.starting_symbol not in self.non_terminals:
             raise Exception('Starting symbol is not a non-terminal symbol')
-        self.symbol_positions[self.__char] = (self.__line, self.__column)  # Store position
+        self.symbol_positions[self.__char] = (self.__line, self.__column)
         self.next_char()
 
-    def process_word(self):
+    def process_word(self):     # Processa e armazena a palavra a ser analisada.
         self.word = self.__char
         self.next_char()
         while self.__char is not None:
