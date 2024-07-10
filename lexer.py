@@ -1,5 +1,5 @@
 class Lexer:
-    def __init__(self, input_path): # Inicializa o Lexer com o arquivo de entrada
+    def __init__(self, input_path: str): # Inicializa o Lexer com o arquivo de entrada
         self.__input_file = open(input_path, 'r')
         self.__input = self.remove_whitespace(self.__input_file.read())
         self.__input_file.close()
@@ -30,7 +30,7 @@ class Lexer:
         else:
             self.__char = None
 
-    def assert_char(self, expected_char): #Verifica se o caractere atual é igual ao caractere esperado e vai para o próximo caractere, se não for igual lança uma exceção.
+    def assert_char(self, expected_char: str): #Verifica se o caractere atual é igual ao caractere esperado e vai para o próximo caractere, se não for igual lança uma exceção.
         if self.__char == expected_char:
             self.next_char()
         else:
@@ -113,7 +113,7 @@ class Lexer:
         self.assert_char('>')
         self.process_permutation_body(non_terminal)
 
-    def process_permutation_body(self, non_terminal):       # Processa corpo da permutação e armazena as produções num dicionário.
+    def process_permutation_body(self, non_terminal: str):       # Processa corpo da permutação e armazena as produções num dicionário.
         if non_terminal not in self.permutations:
             self.permutations[non_terminal] = []
         while self.__char != '\n' and self.__char != '}':
@@ -158,5 +158,5 @@ class Lexer:
             self.next_char()
 
     @staticmethod
-    def remove_whitespace(input):
+    def remove_whitespace(input: str) -> str: # Remove espaços e tabulações do conteúdo do arquivo de entrada.
         return input.replace(' ', '').replace('\t', '')

@@ -1,13 +1,13 @@
 import lexer
 
 class TreeNode: # estrutura de árvore para mensagem do analisador
-    def __init__(self, symbol):
+    def __init__(self, symbol: str):
         self.symbol = symbol
         self.left = None
         self.right = None
 
 class Validator:       # classe do validador da gramática
-    def __init__(self, terminals, non_terminals, permutations, starting_symbol):
+    def __init__(self, terminals: list[str], non_terminals: list[str], permutations: dict[str, list[list[str]]], starting_symbol: str):
         self.terminals = terminals
         self.non_terminals = non_terminals
         self.permutations = permutations            #permutations: mapeia cada símbolo não-terminal para suas produções.
@@ -15,19 +15,19 @@ class Validator:       # classe do validador da gramática
         self.word = ''
         self.position = 0
 
-    def assert_word(self, word) -> tuple[bool, int]:    # verifica se a palavra contém apenas caracteres válidos
+    def assert_word(self, word: str) -> tuple[bool, int]:    # verifica se a palavra contém apenas caracteres válidos e, se não, retorna a posição do erro
         for i, char in enumerate(word):
             if char not in self.terminals:
                 return False, i
         return True, -1
 
-    def assert_char(self, expected_char) -> bool:       # verifica se o caracter atual é igual ao esperado
+    def assert_char(self, expected_char: str) -> bool:       # verifica se o caracter atual é igual ao esperado
         if self.position < len(self.word) and self.word[self.position] == expected_char:
             self.position += 1
             return True
         return False
 
-    def validate(self, word): # verifica se a palavra é valida para a gramática
+    def validate(self, word: str) -> tuple[bool, str | None, TreeNode | None]: # verifica se a palavra é valida para a gramática
         #retorna bool de validação, mensagem de erro (ou None se não houver erro), e a raiz da árvore (se palavra aceita)
         self.word = word
         self.position = 0
@@ -40,7 +40,7 @@ class Validator:       # classe do validador da gramática
             return True, None, tree
         return False, error or f"Erro inesperado após posição {pos}", None
 
-    def _validate_symbol(self, symbol, node):       # valida simbolo da gramática com recurssão, produz a árvore da análise
+    def _validate_symbol(self, symbol: str, node: TreeNode) -> tuple[bool, str | None, TreeNode, int]:       # valida simbolo da gramática com recurssão, produz a árvore da análise
         # retorna bool de palavra válida ou não, mensagem de erro (ou None se não tiver erro), 
         # nó atual na árvore e a posição do erro (ou atual se não houver erro)
         if self.position == len(self.word):
@@ -97,7 +97,7 @@ class Validator:       # classe do validador da gramática
 
         return False, best_error_message or f"Erro ao validar símbolo {error_symbol} na posição {error_position}", node, error_position
     
-def print_tree(node, level=0):
+def print_tree(node: TreeNode, level: int=0):
     if node is not None:
         print(' ' * 4 * level + '->', node.symbol)
         print_tree(node.left, level + 1)
