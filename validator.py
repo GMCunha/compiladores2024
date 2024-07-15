@@ -30,6 +30,17 @@ class Validator:       # classe do validador da gramática
                 first_set |= self.first(production[0])
         return first_set
     
+    def first_direct_path(self, symbol: str, target: str) -> list[str]:       # retorna o caminho direto do conjunto first de um símbolo não-terminal para um símbolo terminal
+        if target not in self.first(symbol):
+            return []
+        for production in self.permutations.get(symbol, []):
+            if production and production[0] == target:
+                return [production[0]]
+            elif production and production[0] in self.non_terminals:
+                path = self.first_direct_path(production[0], target)
+                if path:
+                    return [production[0]] + path
+    
     def remove_empty(self):     # remove vazio da palavra
         self.word = self.word.replace('&', '')
 
@@ -49,7 +60,7 @@ class Validator:       # classe do validador da gramática
         valid_word, error_position = self.assert_word(self.word)
         if not valid_word:
             return False, f"Caractere {self.word[error_position]} na posição {error_position} não foi encontrado na lista de terminais", None
-        if result and pos == len(self.word) or result and pos == len(self.word) - 1:
+        if result:
             return True, None, tree
         return False, error or f"Erro inesperado após posição {pos}", None
 
@@ -58,12 +69,16 @@ class Validator:       # classe do validador da gramática
         # nó atual na árvore e a posição do erro (ou atual se não houver erro)
         if self.position == len(self.word):
             if '&' in [p[0] for p in self.first(symbol)]:
-                new_node = TreeNode('&')
-                if node.left is None:
-                    node.left = new_node
-                else:
-                    node.right = new_node
-                node = new_node
+                path = self.first_direct_path(symbol, '&')
+                current_node = node
+                for char in path:
+                    print(char)
+                    new_node = TreeNode(char)
+                    if current_node.left is None:
+                        current_node.left = new_node
+                    else:
+                        current_node.right = new_node
+                    current_node = new_node
                 return True, None, node, self.position
             return False, "Palavra incompleta", node, self.position
         error_position = self.position
@@ -100,15 +115,15 @@ class Validator:       # classe do validador da gramática
                         current_node = new_node
                     else:
                         matched = False
-                        if self.position > error_position:
+                        if self.position >= error_position:
                             error_position = self.position
                             error_symbol = char
                         break
-            if matched:
+            if matched and self.position == len(self.word):
                 return True, None, node, self.position
             self.position = initial_position
 
-        return False, best_error_message or f"Erro ao validar símbolo {error_symbol} na posição {error_position}", node, error_position
+        return False, best_error_message or f"Erro ao validar símbolo esperado {error_symbol} na posição {error_position}", node, error_position
     
 def print_tree(node: TreeNode, level: int=0):
     if node is not None:
