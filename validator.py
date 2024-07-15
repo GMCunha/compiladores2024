@@ -20,6 +20,18 @@ class Validator:       # classe do validador da gramática
             if char not in self.terminals:
                 return False, i
         return True, -1
+    
+    def first(self, symbol: str) -> set[str]:       # retorna o conjunto first de um símbolo não-terminal
+        first_set = set()
+        for production in self.permutations.get(symbol, []):
+            if production and production[0] in self.terminals:
+                first_set.add(production[0])
+            elif production and production[0] in self.non_terminals:
+                first_set |= self.first(production[0])
+        return first_set
+    
+    def remove_empty(self):     # remove vazio da palavra
+        self.word = self.word.replace('&', '')
 
     def assert_char(self, expected_char: str) -> bool:       # verifica se o caracter atual é igual ao esperado
         if self.position < len(self.word) and self.word[self.position] == expected_char:
@@ -30,13 +42,14 @@ class Validator:       # classe do validador da gramática
     def validate(self, word: str) -> tuple[bool, str | None, TreeNode | None]: # verifica se a palavra é valida para a gramática
         #retorna bool de validação, mensagem de erro (ou None se não houver erro), e a raiz da árvore (se palavra aceita)
         self.word = word
+        self.remove_empty()
         self.position = 0
         root = TreeNode(self.starting_symbol)
         result, error, tree, pos = self._validate_symbol(self.starting_symbol, root)
-        valid_word, error_position = self.assert_word(word)
+        valid_word, error_position = self.assert_word(self.word)
         if not valid_word:
-            return False, f"Caractere {word[error_position]} na posição {error_position} não foi encontrado na lista de terminais", None
-        if result and self.position == len(word):
+            return False, f"Caractere {self.word[error_position]} na posição {error_position} não foi encontrado na lista de terminais", None
+        if result and pos == len(self.word) or result and pos == len(self.word) - 1:
             return True, None, tree
         return False, error or f"Erro inesperado após posição {pos}", None
 
@@ -44,7 +57,7 @@ class Validator:       # classe do validador da gramática
         # retorna bool de palavra válida ou não, mensagem de erro (ou None se não tiver erro), 
         # nó atual na árvore e a posição do erro (ou atual se não houver erro)
         if self.position == len(self.word):
-            if '&' in [p[0] for p in self.permutations.get(symbol, [])]:
+            if '&' in [p[0] for p in self.first(symbol)]:
                 new_node = TreeNode('&')
                 if node.left is None:
                     node.left = new_node
@@ -104,7 +117,6 @@ def print_tree(node: TreeNode, level: int=0):
         print_tree(node.right, level + 1)
 
 def main():
-
     lxr = lexer.Lexer("input.txt")          # inicializa o analisador léxico
     palavra_teste = input("Digite a palavra para validação: ")
     validator = Validator(lxr.terminals, lxr.non_terminals, lxr.permutations, lxr.starting_symbol) # teste de palavra inserida para validação
