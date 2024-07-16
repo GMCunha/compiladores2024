@@ -1,3 +1,9 @@
+# Trabalho para a disciplina de Compiladores
+# Arquivo de implementação do validador da gramática
+# Palavra é inserida pelo usuário e validada pela gramática
+# Se a palavra for aceita, a árvore de análise é impressa
+# Alunos: Guilherme Medeiros da Cunha e Josiane Cristine Aggens
+
 import lexer
 
 class TreeNode: # estrutura de árvore para mensagem do analisador
