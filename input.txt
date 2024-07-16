@@ -1,6 +1,5 @@
-({S, A, B, C}, {-, l, e}, {
-S -> A | B | -B
-A -> l | lC
-C -> eC | e | &
-B -> eB | e | &
+({S, A, B}, {+, -, *, /, n}, {
+S -> nA | -nA
+A -> +B | -B | *B | /B | &
+B -> nA | -nA
 }, S)
