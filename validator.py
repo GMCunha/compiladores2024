@@ -140,6 +140,7 @@ def print_tree(node: TreeNode, level: int=0):   # imprime a árvore de análise
 
 def main():
     lxr = lexer.Lexer("input.txt")          # inicializa o analisador léxico
+    lxr.print_grammar()                     # imprime a gramática
     palavra_teste = input("Digite a palavra para validação: ") # palavra para teste
     validator = Validator(lxr.terminals, lxr.non_terminals, lxr.permutations, lxr.starting_symbol) # teste de palavra inserida para validação
     resultado, erro, tree = validator.validate(palavra_teste)  # imprime o resultado e a árvore de análise se a palavra for aceita.
